@@ -1,0 +1,30 @@
+{
+    "name": "tarre/laravel-fortnox-api",
+    "description": "Fortnox integration with Laravel",
+    "type": "laravel-plugin",
+    "require": {
+        "guzzlehttp/guzzle": "6.*",
+        "laravel/framework": "5.*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "tarre com",
+            "email": "tarre.islam@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Tarre\\Fortnox\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tarre\\Fortnox\\ServiceProvider"
+            ]
+        }
+    }
+
+}
