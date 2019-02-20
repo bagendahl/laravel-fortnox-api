@@ -9,6 +9,8 @@
 namespace Tarre\Fortnox;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Tarre\Fortnox\Api\Orders\FortnoxOrder;
+use Tarre\Fortnox\Api\Orders\Order;
 
 
 class ServiceProvider extends BaseServiceProvider
@@ -24,8 +26,12 @@ class ServiceProvider extends BaseServiceProvider
 
     public function register()
     {
+        // console commands
         $this->app->singleton('command.make.repo', Console\AuthFortnoxToken::class);
         $this->commands('command.make.repo');
+
+        // api
+        $this->app->bind(FortnoxOrder::class, Order::class);
 
     }
 
