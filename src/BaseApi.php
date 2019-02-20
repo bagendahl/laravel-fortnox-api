@@ -10,13 +10,15 @@ namespace Tarre\Fortnox;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use Tarre\Fortnox\Contracts\BaseApiRepository;
 use Tarre\Fortnox\Exceptions\FortnoxRequestException;
 
 /**
  * @property Client client
  */
-class BaseApi
+class BaseApi implements BaseApiRepository
 {
     const SINGULAR_REQUEST = 0;
     const PLURAL_REQUEST = 1;
@@ -27,6 +29,7 @@ class BaseApi
     /**
      * BaseApi constructor.
      * @param Client $client
+     * @throws FortnoxRequestException
      */
     public function __construct()
     {
@@ -42,6 +45,8 @@ class BaseApi
                     'Accept' => 'application/json',
                 ]
             ]);
+            // set default query limit for 500
+            $this->take(config('laravel-fortnox.fortnox_default_limit', 500));
         }
 
         $this->client = $client;
@@ -65,9 +70,13 @@ class BaseApi
     /**
      * @param $number
      * @return BaseApi
+     * @throws FortnoxRequestException
      */
     public function take($number)
     {
+        if ($number > 500) {
+            throw new FortnoxRequestException('The record limit for queries is 500');
+        }
         return $this->setQueryKey('limit', $number);
     }
 
@@ -117,11 +126,10 @@ class BaseApi
     /**
      * @return Client
      */
-    public function getClient()
+    protected function getClient(): Client
     {
         return $this->client;
     }
-
 
     /**
      * @param string $method
@@ -139,11 +147,23 @@ class BaseApi
         try {
             $request = $this->getClient()->request($method, $resource . $uri);
             $content = $request->getBody()->getContents();
-            return new FortnoxResponse($content, $resource);
-        } catch (GuzzleException $e) {
-            dd($e->getMessage());
-            throw new FortnoxRequestException('Whoops');
+            $error = false;
+        } catch (ClientException $exception) {
+            $content = $exception->getResponse()->getBody()->getContents();
+            $error = true;
+        } catch (GuzzleException $exception) {
+            throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
         }
+
+        $decodedContent = json_decode($content, true);
+
+        if ($error) {
+            throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d',
+                data_get($decodedContent, 'ErrorInformation.message'),
+                data_get($decodedContent, 'ErrorInformation.code')));
+        }
+
+        return new FortnoxResponse($decodedContent, $resource);
 
     }
 

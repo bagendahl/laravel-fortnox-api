@@ -24,18 +24,43 @@ class Order extends BaseApi implements FortnoxOrder
         return $this->makeRequest('get', 'orders')->toCollection();
     }
 
+    /**
+     * @param $DocumentNumber
+     * @return Collection
+     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
+     */
     public function getByDocumentNumber($DocumentNumber): Collection
     {
-        // TODO: Implement getByDocumentNumber() method.
+        return $this->makeRequest('get', 'orders', $DocumentNumber)->toCollection();
+
     }
 
+    /**
+     * @param array $attributes
+     * @return mixed|void
+     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
+     */
     public function store(array $attributes)
     {
-        // TODO: Implement store() method.
+        $request = [
+            'Order' => $attributes
+        ];
+
+        $this->makeRequest('post', 'orders', $request);
     }
 
+    /**
+     * @param $DocumentNumber
+     * @param array $attributes
+     * @return mixed|void
+     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
+     */
     public function update($DocumentNumber, array $attributes)
     {
-        // TODO: Implement update() method.
+        $request = [
+            'Order' => $attributes
+        ];
+
+        $this->makeRequest('put', 'orders', $DocumentNumber, $request);
     }
 }

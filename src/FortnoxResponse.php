@@ -18,11 +18,9 @@ class FortnoxResponse
     protected $response;
     protected $metaData = [];
 
-    public function __construct(string $content, string $resource)
+    public function __construct(array $response, string $resource)
     {
         $resource = ucfirst($resource);
-        $response = json_decode($content, true);
-
 
         $this->metaData = [
             'TotalResources' => data_get($response,'MetaInformation.@TotalResources', 1),

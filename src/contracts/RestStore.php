@@ -11,6 +11,10 @@ namespace Tarre\Fortnox\Contracts;
 
 interface RestStore
 {
+    /**
+     * @param array $attributes
+     * @return mixed
+     */
     public function store(array $attributes);
 
 }

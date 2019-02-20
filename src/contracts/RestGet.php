@@ -12,8 +12,14 @@ use Illuminate\Support\Collection;
 
 interface RestGet
 {
-
+    /**
+     * @return Collection
+     */
     public function get(): Collection;
-    public function getByDocumentNumber($DocumentNumber): Collection;
 
+    /**
+     * @param $DocumentNumber
+     * @return Collection
+     */
+    public function getByDocumentNumber($DocumentNumber): Collection;
 }

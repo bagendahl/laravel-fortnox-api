@@ -11,5 +11,10 @@ namespace Tarre\Fortnox\Contracts;
 
 interface RestUpdate
 {
+    /**
+     * @param $DocumentNumber
+     * @param array $attributes
+     * @return mixed
+     */
     public function update($DocumentNumber, array $attributes);
 }
