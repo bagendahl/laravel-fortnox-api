@@ -6,8 +6,7 @@
  * Time: 21:28
  */
 return [
-    'FORTNOX_CLIENT_SECRET' => env('FORTNOX_CLIENT_SECRET'),
-    'FORTNOX_CLIENT_ID' => env('FORTNOX_CLIENT_ID'),
-    'FORTNOX_ACCESS_TOKEN' => env('FORTNOX_ACCESS_TOKEN'),
-    'FORTNOX_RESULTS_LIMIT' => 500
+    'fortnox_client_secret' => env('FORTNOX_CLIENT_SECRET'),
+    'fortnox_client_id' => env('FORTNOX_CLIENT_ID'),
+    'fortnox_access_token' => env('FORTNOX_ACCESS_TOKEN')
 ];

@@ -36,8 +36,8 @@ class BaseApi
             $client = new Client([
                 'base_uri' => 'https://api.fortnox.se/3/',
                 'headers' => [
-                    'Access-Token' => env('FORTNOX_ACCESS_TOKEN'),
-                    'Client-Secret' => env('FORTNOX_CLIENT_SECRET'),
+                    'Access-Token' => config('laravel-fortnox.fortnox_access_token'),
+                    'Client-Secret' => config('laravel-fortnox.fortnox_client_secret'),
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ]
@@ -141,6 +141,7 @@ class BaseApi
             $content = $request->getBody()->getContents();
             return new FortnoxResponse($content, $resource);
         } catch (GuzzleException $e) {
+            dd($e->getMessage());
             throw new FortnoxRequestException('Whoops');
         }
 

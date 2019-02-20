@@ -20,23 +20,16 @@ class FortnoxResponse
 
     public function __construct(string $content, string $resource)
     {
-
+        $resource = ucfirst($resource);
         $response = json_decode($content, true);
 
 
-        if (data_get($response, 'MetaInformation')) {
-            $this->metaData = [
-                'TotalResources' => $response['@TotalResources'],
-                'TotalPages' => $response['@TotalPages'],
-                'CurrentPage' => $response['@CurrentPage']
-            ];
-        } else {
-            $this->metaData = [
-                'TotalResources' => 1,
-                'TotalPages' => 1,
-                'CurrentPage' => 1
-            ];
-        }
+        $this->metaData = [
+            'TotalResources' => data_get($response,'MetaInformation.@TotalResources', 1),
+            'TotalPages' => data_get($response,'MetaInformation.@TotalPages', 1),
+            'CurrentPage' => data_get($response,'MetaInformation.@CurrentPage', 1)
+        ];
+
 
         $this->response = data_get($response, str_plural($resource), data_get($response, str_singular($resource), []));
     }
@@ -54,10 +47,10 @@ class FortnoxResponse
      * @param null $currentPage
      * @return LengthAwarePaginator
      */
-    public function toPagination($perPage = 50, $currentPage = null): LengthAwarePaginator
+    public function toPagination($perPage = 50): LengthAwarePaginator
     {
         $collection = $this->toCollection();
-        return new LengthAwarePaginator($collection, $collection->count(), $perPage, $currentPage);
+        return new LengthAwarePaginator($collection, $collection->count(), $perPage, $this->metaData['CurrentPage']);
     }
 
 }
