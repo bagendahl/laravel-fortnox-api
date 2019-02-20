@@ -44,5 +44,9 @@ class AuthFortnoxToken extends Command
             return;
         }
 
+        // TODO kolla om man har access token
+
+
+
     }
 }
