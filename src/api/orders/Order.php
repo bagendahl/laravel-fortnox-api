@@ -9,58 +9,13 @@
 namespace Tarre\Fortnox\Api\Orders;
 
 
-use Illuminate\Support\Collection;
 use Tarre\Fortnox\BaseApi;
+use Tarre\Fortnox\Traits\Delete;
+use Tarre\Fortnox\Traits\Get;
+use Tarre\Fortnox\Traits\Store;
+use Tarre\Fortnox\Traits\Update;
 
 class Order extends BaseApi implements FortnoxOrder
 {
-
-    /**
-     * @return Collection
-     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
-     */
-    public function get(): Collection
-    {
-        return $this->makeRequest('get', 'orders')->toCollection();
-    }
-
-    /**
-     * @param $DocumentNumber
-     * @return Collection
-     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
-     */
-    public function getByDocumentNumber($DocumentNumber): Collection
-    {
-        return $this->makeRequest('get', 'orders', $DocumentNumber)->toCollection();
-
-    }
-
-    /**
-     * @param array $attributes
-     * @return mixed|void
-     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
-     */
-    public function store(array $attributes)
-    {
-        $request = [
-            'Order' => $attributes
-        ];
-
-        $this->makeRequest('post', 'orders', $request);
-    }
-
-    /**
-     * @param $DocumentNumber
-     * @param array $attributes
-     * @return mixed|void
-     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
-     */
-    public function update($DocumentNumber, array $attributes)
-    {
-        $request = [
-            'Order' => $attributes
-        ];
-
-        $this->makeRequest('put', 'orders', $DocumentNumber, $request);
-    }
+    use Get, Store, Update, Delete;
 }

@@ -25,6 +25,8 @@ class BaseApi implements BaseApiRepository
 
     protected $client = null;
     protected $query = [];
+    protected $resource = null;
+    protected $resourceSingular = null;
 
     /**
      * BaseApi constructor.
@@ -49,6 +51,8 @@ class BaseApi implements BaseApiRepository
             $this->take(config('laravel-fortnox.fortnox_default_limit', 500));
         }
 
+        $this->resource = strtolower(str_plural(class_basename($this)));
+        $this->resourceSingular = ucfirst($this->resource);
         $this->client = $client;
     }
 
@@ -132,20 +136,38 @@ class BaseApi implements BaseApiRepository
     }
 
     /**
+     * @param $key
+     * @return mixed
+     */
+    public function filter($key)
+    {
+        return $this->setQueryKey('filter', $key);
+    }
+
+    /**
      * @param string $method
      * @param string $resource
      * @param mixed ...$args
      * @return FortnoxResponse
      * @throws FortnoxRequestException
      */
-    protected function makeRequest(string $method, string $resource, ...$args): FortnoxResponse
+    protected function makeRequest(string $method, string $resource = null, ...$args): FortnoxResponse
     {
-        $uri = sprintf('%s?%s',
-            implode('/', $args),
+        if (!$resource) {
+            $resource = $this->resource;
+        }
+
+        $uri = $resource;
+
+        if (count($args)) {
+            $uri .= sprintf('/%s', implode('/', $args));
+        }
+
+        $uri .= sprintf('?%s',
             http_build_query($this->query));
 
         try {
-            $request = $this->getClient()->request($method, $resource . $uri);
+            $request = $this->getClient()->request($method, $uri);
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
@@ -158,9 +180,10 @@ class BaseApi implements BaseApiRepository
         $decodedContent = json_decode($content, true);
 
         if ($error) {
-            throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d',
+            throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d. Uri: %s',
                 data_get($decodedContent, 'ErrorInformation.message'),
-                data_get($decodedContent, 'ErrorInformation.code')));
+                data_get($decodedContent, 'ErrorInformation.code'),
+                $uri));
         }
 
         return new FortnoxResponse($decodedContent, $resource);

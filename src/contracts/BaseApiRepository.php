@@ -8,13 +8,21 @@
 
 namespace Tarre\Fortnox\Contracts;
 
-use GuzzleHttp\Client;
-use Tarre\Fortnox\Exceptions\FortnoxRequestException;
-use Tarre\Fortnox\FortnoxResponse;
 
 interface BaseApiRepository
 {
+    /**
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
     public function setQueryKey($key, $value);
+
+    /**
+     * @param $key
+     * @return mixed
+     */
+    public function filter($key);
 
     /**
      * @param $number
