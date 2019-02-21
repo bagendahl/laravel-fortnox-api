@@ -11,20 +11,15 @@ namespace Tarre\Fortnox\Traits;
 
 use Illuminate\Support\Collection;
 
-trait Store
+trait Cancel
 {
-
     /**
-     * @param array $attributes
+     * @param $DocumentNumber
      * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
-    public function store(array $attributes)
+    public function cancel($DocumentNumber)
     {
-        $request = [
-            $this->resourceSingular => $attributes
-        ];
-
-        return $this->withRequestOptions($request)->makeRequest('post', null)->toCollection();
+        return $this->makeRequest('put', null, $DocumentNumber, 'cancel')->toCollection();
     }
 }

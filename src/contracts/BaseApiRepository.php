@@ -14,7 +14,7 @@ interface BaseApiRepository
     /**
      * @param $key
      * @param $value
-     * @return mixed
+     * @return $this
      */
     public function setQueryKey($key, $value);
 
@@ -51,5 +51,12 @@ interface BaseApiRepository
      * @return $this
      */
     public function orderBy(string $column, $sortOrder = 'ascending');
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function withRequestOptions(array $data);
+
 
 }

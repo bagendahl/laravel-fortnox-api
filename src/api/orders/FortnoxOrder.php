@@ -10,11 +10,12 @@ namespace Tarre\Fortnox\Api\Orders;
 
 
 use Tarre\Fortnox\Contracts\BaseApiRepository;
+use Tarre\Fortnox\contracts\Cancel;
 use Tarre\Fortnox\Contracts\RestGet;
 use Tarre\Fortnox\Contracts\RestStore;
 use Tarre\Fortnox\Contracts\RestUpdate;
 
-interface FortnoxOrder extends BaseApiRepository, RestGet, RestStore, RestUpdate
+interface FortnoxOrder extends BaseApiRepository, RestGet, RestStore, RestUpdate, Cancel
 {
 
 }

@@ -12,7 +12,9 @@ namespace Tarre\Fortnox;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\RequestOptions;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
+use Tarre\Fortnox\Exceptions\FortnoxQueryException;
 use Tarre\Fortnox\Exceptions\FortnoxRequestException;
 
 /**
@@ -27,6 +29,8 @@ class BaseApi implements BaseApiRepository
     protected $query = [];
     protected $resource = null;
     protected $resourceSingular = null;
+    protected $action = '';
+    protected $requestData = [];
 
     /**
      * BaseApi constructor.
@@ -52,7 +56,7 @@ class BaseApi implements BaseApiRepository
         }
 
         $this->resource = strtolower(str_plural(class_basename($this)));
-        $this->resourceSingular = ucfirst($this->resource);
+        $this->resourceSingular = ucfirst(str_singular($this->resource));
         $this->client = $client;
     }
 
@@ -74,12 +78,12 @@ class BaseApi implements BaseApiRepository
     /**
      * @param $number
      * @return BaseApi
-     * @throws FortnoxRequestException
+     * @throws FortnoxQueryException
      */
     public function take($number)
     {
         if ($number > 500) {
-            throw new FortnoxRequestException('The record limit for queries is 500');
+            throw new FortnoxQueryException('The record limit for queries is 500');
         }
         return $this->setQueryKey('limit', $number);
     }
@@ -120,7 +124,7 @@ class BaseApi implements BaseApiRepository
     /**
      * @param string $column
      * @param string $sortOrder
-     * @return BaseApi
+     * @return $this
      */
     public function orderBy(string $column, $sortOrder = 'ascending')
     {
@@ -137,11 +141,35 @@ class BaseApi implements BaseApiRepository
 
     /**
      * @param $key
-     * @return mixed
+     * @return $this
      */
     public function filter($key)
     {
         return $this->setQueryKey('filter', $key);
+    }
+
+    /**
+     * @param array $data
+     * @return $this
+     */
+    public function withRequestOptions(array $data)
+    {
+        /*
+        array_walk_recursive($data, function (&$item) {
+            $item = is_null($item) ? '' : $item;
+        });
+        */
+
+        $this->requestData = $data;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function hasRequestData()
+    {
+        return count($this->requestData) > 0;
     }
 
     /**
@@ -159,7 +187,7 @@ class BaseApi implements BaseApiRepository
 
         $uri = $resource;
 
-        if (count($args)) {
+        if (count($args) > 0) {
             $uri .= sprintf('/%s', implode('/', $args));
         }
 
@@ -167,7 +195,16 @@ class BaseApi implements BaseApiRepository
             http_build_query($this->query));
 
         try {
-            $request = $this->getClient()->request($method, $uri);
+
+            if ($this->hasRequestData()) {
+                $requestOptions = [
+                    RequestOptions::JSON => $this->requestData
+                ];
+            } else {
+                $requestOptions = [];
+            }
+
+            $request = $this->getClient()->request($method, $uri, $requestOptions);
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
@@ -189,5 +226,6 @@ class BaseApi implements BaseApiRepository
         return new FortnoxResponse($decodedContent, $resource);
 
     }
+
 
 }

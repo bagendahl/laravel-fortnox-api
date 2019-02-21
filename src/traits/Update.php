@@ -9,12 +9,14 @@
 namespace Tarre\Fortnox\Traits;
 
 
+use Illuminate\Support\Collection;
+
 trait Update
 {
     /**
      * @param $DocumentNumber
      * @param array $attributes
-     * @return mixed|void
+     * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
     public function update($DocumentNumber, array $attributes)
@@ -23,6 +25,6 @@ trait Update
             $this->resourceSingular => $attributes
         ];
 
-        $this->makeRequest('put', 'orders', $DocumentNumber, $request);
+        return $this->withRequestOptions($request)->makeRequest('put', null, $DocumentNumber)->toCollection();
     }
 }

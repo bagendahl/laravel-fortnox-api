@@ -9,11 +9,13 @@
 namespace Tarre\Fortnox\Contracts;
 
 
+use Illuminate\Support\Collection;
+
 interface RestStore
 {
     /**
      * @param array $attributes
-     * @return mixed
+     * @return Collection
      */
     public function store(array $attributes);
 
