@@ -14,7 +14,8 @@ use Illuminate\Support\Collection;
 interface CreateInvoice
 {
     /**
+     * @param $DocumentNumber
      * @return Collection
      */
-    public function createInvoice(): Collection;
+    public function createInvoice($DocumentNumber): Collection;
 }

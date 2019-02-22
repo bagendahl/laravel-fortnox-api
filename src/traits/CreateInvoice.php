@@ -13,13 +13,12 @@ use Illuminate\Support\Collection;
 
 trait CreateInvoice
 {
-
     /**
+     * @param $DocumentNumber
      * @return Collection
-     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
-    public function createInvoice(): Collection
+    public function createInvoice($DocumentNumber): Collection
     {
-        return $this->makeRequest('put', null, 'createinvoice')->toCollection();
+        return $this->makeRequest('put', null, $DocumentNumber, 'createinvoice')->toCollection();
     }
 }
