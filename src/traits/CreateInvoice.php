@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Tarre
- * Date: 2019-02-21
- * Time: 21:45
+ * Date: 2019-02-22
+ * Time: 22:11
  */
 
 namespace Tarre\Fortnox\Traits;
@@ -11,15 +11,15 @@ namespace Tarre\Fortnox\Traits;
 
 use Illuminate\Support\Collection;
 
-trait Cancel
+trait CreateInvoice
 {
+
     /**
-     * @param $DocumentNumber
      * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
-    public function cancel($DocumentNumber): Collection
+    public function createInvoice(): Collection
     {
-        return $this->makeRequest('put', null, $DocumentNumber, 'cancel')->toCollection();
+        return $this->makeRequest('put', null, 'createinvoice')->toCollection();
     }
 }

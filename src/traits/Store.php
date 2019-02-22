@@ -19,7 +19,7 @@ trait Store
      * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
-    public function store(array $attributes)
+    public function store(array $attributes): Collection
     {
         $request = [
             $this->resourceSingular => $attributes

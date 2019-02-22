@@ -19,7 +19,7 @@ trait Update
      * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
-    public function update($DocumentNumber, array $attributes)
+    public function update($DocumentNumber, array $attributes): Collection
     {
         $request = [
             $this->resourceSingular => $attributes
