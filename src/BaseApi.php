@@ -191,11 +191,11 @@ class BaseApi implements BaseApiRepository
     }
 
     /**
-     * @param string|null $resource
+     * @param string|null &$resource
      * @param mixed $args
      * @return string
      */
-    protected function makeUri(string $resource = null, $args)
+    protected function makeUri(string &$resource = null, $args)
     {
         if (!$resource) {
             $resource = $this->resource;
@@ -292,7 +292,7 @@ class BaseApi implements BaseApiRepository
                 sprintf("Access-Token: %s", $this->config['Access-Token']),
                 sprintf("Client-Secret: %s", $this->config['Client-Secret']),
                 "Cache-Control: no-cache"
-            ],
+            ]
         ];
 
         curl_setopt_array($curl, $curlOpt);
