@@ -22,8 +22,6 @@ use Tarre\Fortnox\Exceptions\FortnoxRequestException;
  */
 class BaseApi implements BaseApiRepository
 {
-    const SINGULAR_REQUEST = 0;
-    const PLURAL_REQUEST = 1;
 
     protected $client = null;
     protected $query = [];
@@ -32,21 +30,31 @@ class BaseApi implements BaseApiRepository
     protected $action = '';
     protected $requestData = [];
 
+    protected $config;
+
     /**
      * BaseApi constructor.
      * @param Client $client
      * @throws FortnoxRequestException
+     * @throws FortnoxQueryException
      */
     public function __construct()
     {
-        static $client;
+        static $client, $config;
 
         if (!$client) {
-            $client = new Client([
+
+            $config = [
                 'base_uri' => 'https://api.fortnox.se/3/',
+                'Access-Token' => config('laravel-fortnox.fortnox_access_token'),
+                'Client-Secret' => config('laravel-fortnox.fortnox_client_secret')
+            ];
+
+            $client = new Client([
+                'base_uri' => $config['base_uri'],
                 'headers' => [
-                    'Access-Token' => config('laravel-fortnox.fortnox_access_token'),
-                    'Client-Secret' => config('laravel-fortnox.fortnox_client_secret'),
+                    'Access-Token' => $config['Access-Token'],
+                    'Client-Secret' => $config['Client-Secret'],
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                 ]
@@ -58,6 +66,7 @@ class BaseApi implements BaseApiRepository
         $this->resource = strtolower(str_plural(class_basename($this)));
         $this->resourceSingular = ucfirst(str_singular($this->resource));
         $this->client = $client;
+        $this->config = $config;
     }
 
     /**
@@ -173,13 +182,20 @@ class BaseApi implements BaseApiRepository
     }
 
     /**
-     * @param string $method
-     * @param string $resource
-     * @param mixed ...$args
-     * @return FortnoxResponse
-     * @throws FortnoxRequestException
+     * @param null $resource
+     * @return null|string
      */
-    protected function makeRequest(string $method, string $resource = null, ...$args): FortnoxResponse
+    protected function parseResource($resource = null)
+    {
+        return !$resource ? $this->resource : $resource;
+    }
+
+    /**
+     * @param string|null $resource
+     * @param mixed $args
+     * @return string
+     */
+    protected function makeUri(string $resource = null, $args)
     {
         if (!$resource) {
             $resource = $this->resource;
@@ -193,6 +209,33 @@ class BaseApi implements BaseApiRepository
 
         $uri .= sprintf('?%s',
             http_build_query($this->query));
+
+        return $uri;
+    }
+
+    /**
+     * @param $data
+     * @param $uri
+     * @throws FortnoxRequestException
+     */
+    protected function throwDecodedErr($data, $uri)
+    {
+        throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d. Uri: %s',
+            data_get($data, 'ErrorInformation.message'),
+            data_get($data, 'ErrorInformation.code'),
+            $uri));
+    }
+
+    /**
+     * @param string $method
+     * @param string $resource
+     * @param mixed ...$args
+     * @return FortnoxResponse
+     * @throws FortnoxRequestException
+     */
+    protected function makeRequest(string $method, string $resource = null, ...$args): FortnoxResponse
+    {
+        $uri = $this->makeUri($resource, $args);
 
         try {
 
@@ -217,15 +260,58 @@ class BaseApi implements BaseApiRepository
         $decodedContent = json_decode($content, true);
 
         if ($error) {
-            throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d. Uri: %s',
-                data_get($decodedContent, 'ErrorInformation.message'),
-                data_get($decodedContent, 'ErrorInformation.code'),
-                $uri));
+            $this->throwDecodedErr($decodedContent, $uri);
         }
 
         return new FortnoxResponse($decodedContent, $resource);
-
     }
 
+
+    /**
+     * @param string $method
+     * @param string|null $resource
+     * @param mixed ...$args
+     * @return FortnoxFileResponse
+     * @throws FortnoxRequestException
+     */
+    protected function makeFileRequest(string $method, string $resource = null, ...$args)
+    {
+        $uri = $this->makeUri($resource, $args);
+
+        $curl = curl_init();
+
+        $curlOpt = [
+            CURLOPT_URL => $this->config['base_uri'] . $uri,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 5,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => strtoupper($method),
+            CURLOPT_HTTPHEADER => [
+                sprintf("Access-Token: %s", $this->config['Access-Token']),
+                sprintf("Client-Secret: %s", $this->config['Client-Secret']),
+                "Cache-Control: no-cache"
+            ],
+        ];
+
+        curl_setopt_array($curl, $curlOpt);
+        $response = curl_exec($curl);
+        curl_close($curl);
+
+        try {
+            $decodedContent = json_decode($response, true);
+            $error = data_get($decodedContent, 'ErrorInformation.error', false) == 1;
+        } catch (\Exception $exception) {
+            $error = true;
+        }
+
+
+        if ($error) {
+            $this->throwDecodedErr($decodedContent, $uri);
+        }
+
+        return new FortnoxFileResponse($response);
+    }
 
 }

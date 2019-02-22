@@ -10,6 +10,7 @@ namespace Tarre\Fortnox\Contracts;
 
 
 use Illuminate\Support\Collection;
+use Tarre\Fortnox\FortnoxFileResponse;
 
 interface CommonDocumentActions
 {
@@ -37,7 +38,7 @@ interface CommonDocumentActions
     /**
      * This action returns a PDF document with the current template that is used by the specific document. Apart from the action print, this action doesn’t set the field Sent as true.
      * @param $DocumentNumber
-     * @return Collection
+     * @return FortnoxFileResponse
      */
-    public function preview($DocumentNumber): Collection;
+    public function preview($DocumentNumber): FortnoxFileResponse;
 }
