@@ -4,7 +4,13 @@ namespace Tarre\Fortnox\Console;
 
 
 use Config;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
+use Tarre\Fortnox\BaseApi;
+use Tarre\Fortnox\Exceptions\FortnoxRequestException;
+use Tarre\Fortnox\Helper;
 
 class AuthFortnoxToken extends Command
 {
@@ -13,7 +19,7 @@ class AuthFortnoxToken extends Command
      *
      * @var string
      */
-    protected $signature = 'laravel-fortnox:auth {accessToken}';
+    protected $signature = 'fortnox:install';
 
     /**
      * The console command description.
@@ -36,6 +42,7 @@ class AuthFortnoxToken extends Command
      * Execute the console command.
      *
      * @return mixed
+     * @throws GuzzleException
      */
     public function handle()
     {
@@ -44,8 +51,69 @@ class AuthFortnoxToken extends Command
             return;
         }
 
-        // TODO kolla om man har access token
+        if (Config::has('laravel-fortnox.fortnox_access_token')) {
+            $this->warn('Access-Token already installed, to continue you have to remove your current Access-Token');
+            if (!$this->confirm('Do you want to continue?')) {
+                $this->info('Aborted');
+                return;
+            } else {
+                $this->removeAccessToken();
+            }
+        }
 
+        $AuthorizationCode = $this->ask('Enter the AuthorazationCode / API-KOD from the Fortnox application');
+
+        $this->installAccessToken($AuthorizationCode);
 
     }
+
+    /**
+     * @param $AuthorizationCode
+     * @throws GuzzleException
+     */
+    protected function installAccessToken($AuthorizationCode)
+    {
+        $client = new Client([
+            'base_uri' => config('laravel-fortnox.base_uri') . '/',
+            'headers' => [
+                'Authorization-Code' => $AuthorizationCode,
+                'Client-Secret' => config('laravel-fortnox.fortnox_client_secret'),
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        try {
+            $request = $client->request('customers');
+            $content = $request->getBody()->getContents();
+            $error = false;
+        } catch (ClientException $exception) {
+            $content = $exception->getResponse()->getBody()->getContents();
+            $error = true;
+        }
+
+        $decodedData = json_decode($content, true);
+
+        if ($error) {
+            $this->error(sprintf('Failed to retrive Access-Token: %s', data_get($decodedData, 'ErrorInformation.Message', 'Unknown error')));
+            return;
+        }
+
+        $AccessToken = data_get($decodedData, 'Authorization.AccessToken', null);
+
+        $fh = fopen('.env', 'a+');
+        fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken). PHP_EOL);
+
+        $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
+    }
+
+    protected function removeAccessToken()
+    {
+        $fh = fopen('.env', 'r+');
+        $oldEnv = fread($fh, filesize('.env'));
+        $newEnv = preg_replace('/FORTNOX_ACCESS_TOKEN=[^\n]+\n*/m', '', $oldEnv);
+        ftruncate($fh, 0);
+        fwrite($fh, $newEnv);
+    }
+
 }
