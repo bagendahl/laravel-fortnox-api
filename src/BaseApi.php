@@ -45,7 +45,7 @@ class BaseApi implements BaseApiRepository
         if (!$client) {
 
             $config = [
-                'base_uri' => 'https://api.fortnox.se/3/',
+                'base_uri' => config('laravel-fortnox.base_uri') . '/',
                 'Access-Token' => config('laravel-fortnox.fortnox_access_token'),
                 'Client-Secret' => config('laravel-fortnox.fortnox_client_secret')
             ];

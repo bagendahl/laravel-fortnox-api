@@ -40,12 +40,11 @@ class AuthFortnoxToken extends Command
     public function handle()
     {
         if (!Config::has('laravel-fortnox')) {
-            $this->error('Missing config\\laravel-fortnox.php. Please run php artisan vendor:publish');
+            $this->error('Missing config' . DIRECTORY_SEPARATOR . 'laravel-fortnox.php. Please run php artisan vendor:publish');
             return;
         }
 
         // TODO kolla om man har access token
-
 
 
     }
