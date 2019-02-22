@@ -45,6 +45,7 @@ class FortnoxFileResponse
 
 
     /**
+     * Default path is storage/fortnox
      * @param $filename
      * @param null $path
      * @return bool
