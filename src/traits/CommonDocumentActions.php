@@ -30,7 +30,7 @@ trait CommonDocumentActions
      */
     public function print($DocumentNumber): Collection
     {
-        return $this->makeRequest('put', null, $DocumentNumber, 'print')->toCollection();
+        return $this->makeRequest('get', null, $DocumentNumber, 'print')->toCollection();
     }
 
     /**
@@ -39,7 +39,7 @@ trait CommonDocumentActions
      */
     public function externalPrint($DocumentNumber): Collection
     {
-        return $this->makeRequest('put', null, $DocumentNumber, 'externalprint')->toCollection();
+        return $this->makeRequest('get', null, $DocumentNumber, 'externalprint')->toCollection();
     }
 
     /**
@@ -48,6 +48,6 @@ trait CommonDocumentActions
      */
     public function preview($DocumentNumber): Collection
     {
-        return $this->makeRequest('put', null, $DocumentNumber, 'preview')->toCollection();
+        return $this->makeRequest('get', null, $DocumentNumber, 'preview')->toCollection();
     }
 }
