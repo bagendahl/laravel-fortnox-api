@@ -2,7 +2,6 @@
 
 namespace Tarre\Fortnox\Console;
 
-
 use Config;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;

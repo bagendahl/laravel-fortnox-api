@@ -8,7 +8,6 @@
 
 namespace Tarre\Fortnox\Traits;
 
-
 use Illuminate\Support\Collection;
 
 trait Cancel

@@ -8,7 +8,6 @@
 
 namespace Tarre\Fortnox\Contracts;
 
-
 use Illuminate\Support\Collection;
 
 interface CreateInvoice

@@ -8,7 +8,6 @@
 
 namespace Tarre\Fortnox;
 
-
 class FortnoxFileResponse
 {
     protected $response;

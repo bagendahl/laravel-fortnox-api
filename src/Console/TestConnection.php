@@ -11,7 +11,7 @@ namespace Tarre\Fortnox\Console;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
-use Tarre\Fortnox\api\Customers\FortnoxCustomer;
+use Tarre\Fortnox\Api\Customers\FortnoxCustomer;
 
 class TestConnection extends Command
 {

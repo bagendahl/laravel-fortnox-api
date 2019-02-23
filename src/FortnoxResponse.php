@@ -8,7 +8,6 @@
 
 namespace Tarre\Fortnox;
 
-
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
