@@ -3,19 +3,17 @@
  * Created by PhpStorm.
  * User: Tarre
  * Date: 2019-02-23
- * Time: 01:55
+ * Time: 10:21
  */
 
-namespace Tarre\Fortnox\Api\Customers;
-
-
+namespace Tarre\Fortnox\Api\Articles;
 use Tarre\Fortnox\Contracts\RestDelete;
 use Tarre\Fortnox\Contracts\RestUpdate;
 use Tarre\Fortnox\Contracts\RestStore;
 use Tarre\Fortnox\Contracts\RestGet;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
 
-interface FortnoxCustomer extends BaseApiRepository, RestGet, RestStore, RestUpdate, RestDelete
+interface FortnoxArticles extends BaseApiRepository, RestGet, RestStore, RestUpdate, RestDelete
 {
 
 }

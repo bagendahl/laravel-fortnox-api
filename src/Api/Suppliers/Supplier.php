@@ -3,19 +3,18 @@
  * Created by PhpStorm.
  * User: Tarre
  * Date: 2019-02-23
- * Time: 01:55
+ * Time: 10:26
  */
 
-namespace Tarre\Fortnox\Api\Customers;
+namespace Tarre\Fortnox\Api\Suppliers;
+
 
 use Tarre\Fortnox\BaseApi;
-use Tarre\Fortnox\Traits\Delete;
 use Tarre\Fortnox\Traits\Get;
 use Tarre\Fortnox\Traits\Store;
 use Tarre\Fortnox\Traits\Update;
 
-class Customer extends BaseApi implements FortnoxCustomer
+class Supplier extends BaseApi implements FortnoxSupplier
 {
-    use Store, Get, Update, Delete;
-
+    use Get, Update, Store;
 }
