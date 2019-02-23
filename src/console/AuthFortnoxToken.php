@@ -8,9 +8,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
-use Tarre\Fortnox\BaseApi;
-use Tarre\Fortnox\Exceptions\FortnoxRequestException;
-use Tarre\Fortnox\Helper;
 
 class AuthFortnoxToken extends Command
 {
@@ -46,12 +43,19 @@ class AuthFortnoxToken extends Command
      */
     public function handle()
     {
+        $this->comment('');
+        $this->comment('This guide will help you get started with Fortnox API');
         if (!Config::has('laravel-fortnox')) {
-            $this->error('Missing config' . DIRECTORY_SEPARATOR . 'laravel-fortnox.php. Please run php artisan vendor:publish');
+            $this->error('Missing config' . DIRECTORY_SEPARATOR . 'laravel-fortnox.php. Please publish the config');
+
+            if ($this->confirm('Do you want to run "php artisan vendor:publish --tag=laravel-fortnox" ?', true)) {
+                $this->call('vendor:publish', ['--tag' => 'laravel-fortnox']);
+            }
+
             return;
         }
 
-        if (Config::has('laravel-fortnox.fortnox_access_token')) {
+        if (Config::get('laravel-fortnox.fortnox_access_token')) {
             $this->warn('Access-Token already installed, to continue you have to remove your current Access-Token');
             if (!$this->confirm('Do you want to continue?')) {
                 $this->info('Aborted');
@@ -61,7 +65,7 @@ class AuthFortnoxToken extends Command
             }
         }
 
-        $AuthorizationCode = $this->ask('Enter the AuthorazationCode / API-KOD from the Fortnox application');
+        $AuthorizationCode = $this->ask('Enter the Authorazation code / API-KOD from the Fortnox application');
 
         $this->installAccessToken($AuthorizationCode);
 
@@ -95,25 +99,34 @@ class AuthFortnoxToken extends Command
         $decodedData = json_decode($content, true);
 
         if ($error) {
-            $this->error(sprintf('Failed to retrive Access-Token: %s', data_get($decodedData, 'ErrorInformation.Message', 'Unknown error')));
+            $this->error(sprintf('Failed to install Access-Token: %s', data_get($decodedData, 'ErrorInformation.Message', 'Unknown error')));
             return;
         }
 
         $AccessToken = data_get($decodedData, 'Authorization.AccessToken', null);
 
-        $fh = fopen('.env', 'a+');
-        fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken). PHP_EOL);
+        try {
+            $fh = fopen('.env', 'a+');
+            fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken) . PHP_EOL);
+            $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
+        } catch (\Exception $exception) {
+            $this->warn(sprintf('Successfully retrieved Access-Token but failed to put it in the .env file. Please add it manually: FORTNOX_ACCESS_TOKEN=%s', $AccessToken));
+        }
 
-        $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
     }
 
     protected function removeAccessToken()
     {
-        $fh = fopen('.env', 'r+');
-        $oldEnv = fread($fh, filesize('.env'));
-        $newEnv = preg_replace('/FORTNOX_ACCESS_TOKEN=[^\n]+\n*/m', '', $oldEnv);
-        ftruncate($fh, 0);
-        fwrite($fh, $newEnv);
+        try {
+            $fh = fopen('.env', 'r+');
+            $oldEnv = fread($fh, filesize('.env'));
+            $newEnv = preg_replace('/FORTNOX_ACCESS_TOKEN=[^\n]+\n*/m', '', $oldEnv);
+            ftruncate($fh, 0);
+            fwrite($fh, $newEnv);
+        } catch (\Exception $exception) {
+            $this->error('Failed to remove FORTNOX_ACCESS_TOKEN from the .env file. Please remove it manually');
+            exit;
+        }
     }
 
 }

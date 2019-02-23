@@ -27,8 +27,10 @@ class ServiceProvider extends BaseServiceProvider
     public function register()
     {
         // console commands
-        $this->app->singleton('command.make.repo', Console\AuthFortnoxToken::class);
-        $this->commands('command.make.repo');
+        $this->app->singleton('command.fortnox.install', Console\AuthFortnoxToken::class);
+        $this->app->singleton('command.fortnox.test', Console\TestConnection::class);
+        $this->commands('command.fortnox.install');
+        $this->commands('command.fortnox.test');
 
         // api
         $this->app->bind(FortnoxOrder::class, Order::class);
