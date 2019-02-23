@@ -54,19 +54,25 @@ class AuthFortnoxToken extends Command
             return;
         }
 
-        if (Config::get('laravel-fortnox.fortnox_access_token')) {
-            $this->warn('Access-Token already installed, to continue you have to remove your current Access-Token');
-            if (!$this->confirm('Do you want to continue?')) {
-                $this->info('Aborted');
-                return;
-            } else {
-                $this->removeAccessToken();
+        if (!$this->confirm('Do you have an existing Access-Token or do you want to setup a new one using a unused Authorazation code?')) {
+
+            if (Config::get('laravel-fortnox.fortnox_access_token')) {
+                $this->warn('Access-Token already installed, to continue you have to remove your current Access-Token');
+                if (!$this->confirm('Do you want to continue?')) {
+                    $this->info('Aborted');
+                    return;
+                } else {
+                    $this->removeAccessToken();
+                }
             }
+
+            $AuthorizationCode = $this->ask('Enter the Authorazation code / API-KOD from the Fortnox application');
+            $this->installAccessToken($AuthorizationCode);
+        } else {
+            $AccessToken = $this->ask('Enter your existing Access-Token here');
+            $this->removeAccessToken();
+            $this->addAccessToken($AccessToken);
         }
-
-        $AuthorizationCode = $this->ask('Enter the Authorazation code / API-KOD from the Fortnox application');
-
-        $this->installAccessToken($AuthorizationCode);
 
     }
 
@@ -104,13 +110,7 @@ class AuthFortnoxToken extends Command
 
         $AccessToken = data_get($decodedData, 'Authorization.AccessToken', null);
 
-        try {
-            $fh = fopen('.env', 'a+');
-            fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken) . PHP_EOL);
-            $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
-        } catch (\Exception $exception) {
-            $this->warn(sprintf('Successfully retrieved Access-Token but failed to put it in the .env file. Please add it manually: FORTNOX_ACCESS_TOKEN=%s', $AccessToken));
-        }
+        $this->addAccessToken($AccessToken);
 
     }
 
@@ -125,6 +125,17 @@ class AuthFortnoxToken extends Command
         } catch (\Exception $exception) {
             $this->error('Failed to remove FORTNOX_ACCESS_TOKEN from the .env file. Please remove it manually');
             exit;
+        }
+    }
+
+    protected function addAccessToken($AccessToken)
+    {
+        try {
+            $fh = fopen('.env', 'a+');
+            fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken) . PHP_EOL);
+            $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
+        } catch (\Exception $exception) {
+            $this->warn(sprintf('Successfully retrieved Access-Token but failed to put it in the .env file. Please add it manually: FORTNOX_ACCESS_TOKEN=%s', $AccessToken));
         }
     }
 
