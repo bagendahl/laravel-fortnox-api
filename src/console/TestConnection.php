@@ -9,12 +9,9 @@
 namespace Tarre\Fortnox\Console;
 
 
-use Config;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
-use Tarre\Fortnox\Api\Orders\FortnoxOrder;
+use Tarre\Fortnox\api\Customers\FortnoxCustomer;
 
 class TestConnection extends Command
 {
@@ -48,7 +45,7 @@ class TestConnection extends Command
      * @return mixed
      * @throws GuzzleException
      */
-    public function handle(FortnoxOrder $fortnoxOrder)
+    public function handle(FortnoxCustomer $fortnoxCustomer)
     {
         $this->info('Testing integration');
 
@@ -65,7 +62,7 @@ class TestConnection extends Command
         }
 
         try {
-            $fortnoxOrder->get();
+            $fortnoxCustomer->take(1)->get();
         } catch (\Exception $exception) {
             $messages[] = sprintf($exception->getMessage());
         }

@@ -17,6 +17,6 @@ interface RestStore
      * @param array $attributes
      * @return Collection
      */
-    public function store(array $attributes);
+    public function store(array $attributes): Collection;
 
 }

@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Tarre
- * Date: 2019-02-20
- * Time: 20:01
+ * Date: 2019-02-23
+ * Time: 01:52
  */
 
 namespace Tarre\Fortnox\Contracts;
@@ -11,12 +11,12 @@ namespace Tarre\Fortnox\Contracts;
 
 use Illuminate\Support\Collection;
 
-interface RestUpdate
+interface RestDelete
 {
     /**
      * @param $DocumentNumber
-     * @param array $attributes
      * @return Collection
      */
-    public function update($DocumentNumber, array $attributes): Collection;
+    public function delete($DocumentNumber): Collection;
+
 }
