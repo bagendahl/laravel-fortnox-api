@@ -161,7 +161,7 @@ class BaseApi implements BaseApiRepository
      * @param array $data
      * @return $this
      */
-    public function withRequestOptions(array $data)
+    protected function withRequestOptions(array $data)
     {
         /*
         array_walk_recursive($data, function (&$item) {
