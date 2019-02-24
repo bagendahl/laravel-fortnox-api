@@ -9,6 +9,8 @@
 namespace Tarre\Fortnox;
 
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Tarre\Fortnox\Api\AbsenceTransactions\AbsenceTransaction;
+use Tarre\Fortnox\Api\AbsenceTransactions\FortnoxAbsenceTransaction;
 use Tarre\Fortnox\Api\Articles\Articles;
 use Tarre\Fortnox\Api\Articles\FortnoxArticles;
 use Tarre\Fortnox\Api\Customers\Customer;
@@ -46,6 +48,7 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->bind(FortnoxInvoice::class, Invoice::class);
         $this->app->bind(FortnoxArticles::class, Articles::class);
         $this->app->bind(FortnoxSupplier::class, Supplier::class);
+        $this->app->bind(FortnoxAbsenceTransaction::class, AbsenceTransaction::class);
 
     }
 
