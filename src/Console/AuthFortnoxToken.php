@@ -54,6 +54,15 @@ class AuthFortnoxToken extends Command
             return;
         }
 
+        if (!Config::has('laravel-fortnox.fortnox_client_id')) {
+            $this->error('Missing config FORTNOX_CLIENT_ID Please put it in your .env file');
+            return;
+        }
+        if (!Config::has('laravel-fortnox.fortnox_client_secret')) {
+            $this->error('Missing config FORTNOX_CLIENT_SECRET Please put it in your .env file');
+            return;
+        }
+
         if (!$this->confirm('Do you have an existing Access-Token or do you want to setup a new one using a unused Authorazation code?')) {
 
             if (Config::get('laravel-fortnox.fortnox_access_token')) {
@@ -104,7 +113,7 @@ class AuthFortnoxToken extends Command
         $decodedData = json_decode($content, true);
 
         if ($error) {
-            $this->error(sprintf('Failed to install Access-Token: %s', data_get($decodedData, 'ErrorInformation.Message', 'Unknown error')));
+            $this->error(sprintf('Failed to install Access-Token: %s', data_get($decodedData, 'ErrorInformation.Message', 'Failed to retrieve error')));
             return;
         }
 
@@ -132,7 +141,7 @@ class AuthFortnoxToken extends Command
     {
         try {
             $fh = fopen('.env', 'a+');
-            fwrite($fh, sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken) . PHP_EOL);
+            fwrite($fh, PHP_EOL . sprintf('FORTNOX_ACCESS_TOKEN=%s', $AccessToken) . PHP_EOL);
             $this->info(sprintf('Successfully installed Access-Token: %s', $AccessToken));
         } catch (\Exception $exception) {
             $this->warn(sprintf('Successfully retrieved Access-Token but failed to put it in the .env file. Please add it manually: FORTNOX_ACCESS_TOKEN=%s', $AccessToken));

@@ -221,8 +221,8 @@ class BaseApi implements BaseApiRepository
     protected function throwDecodedErr($data, $uri)
     {
         throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d. Uri: %s',
-            data_get($data, 'ErrorInformation.Message'),
-            data_get($data, 'ErrorInformation.Code'),
+            data_get($data, 'ErrorInformation.message'),
+            data_get($data, 'ErrorInformation.code'),
             $uri));
     }
 
