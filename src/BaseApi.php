@@ -190,13 +190,17 @@ class BaseApi implements BaseApiRepository
         return !$resource ? $this->resource : $resource;
     }
 
+
     /**
-     * @param string|null &$resource
-     * @param mixed $args
-     * @return string
+     * @param string|null $resource
+     * @param $args
+     * @param string $action
+     * @return null|string
      */
-    protected function makeUri(string &$resource = null, $args)
+    protected function makeUri(string &$resource = null, $args, string $action)
     {
+        $this->action = $action;
+
         if (!$resource) {
             $resource = $this->resource;
         }
@@ -220,22 +224,24 @@ class BaseApi implements BaseApiRepository
      */
     protected function throwDecodedErr($data, $uri)
     {
-        throw new FortnoxRequestException(sprintf('Fortnox says: %s. Code: %d. Uri: %s',
-            data_get($data, 'ErrorInformation.message'),
-            data_get($data, 'ErrorInformation.code'),
-            $uri));
+        throw new FortnoxRequestException(sprintf('Error %d: %s. %s %s. %s',
+            data_get($data, 'ErrorInformation.code', data_get($data, 'ErrorInformation.Code')),
+            data_get($data, 'ErrorInformation.message', data_get($data, 'ErrorInformation.Message')),
+            strtoupper($this->action),
+            $uri,
+            json_encode($this->requestData)));
     }
 
     /**
-     * @param string $method
+     * @param string $action
      * @param string $resource
      * @param mixed ...$args
      * @return FortnoxResponse
      * @throws FortnoxRequestException
      */
-    protected function makeRequest(string $method, string $resource = null, ...$args): FortnoxResponse
+    protected function makeRequest(string $action, string $resource = null, ...$args): FortnoxResponse
     {
-        $uri = $this->makeUri($resource, $args);
+        $uri = $this->makeUri($resource, $args, $action);
 
         try {
 
@@ -247,7 +253,7 @@ class BaseApi implements BaseApiRepository
                 $requestOptions = [];
             }
 
-            $request = $this->getClient()->request($method, $uri, $requestOptions);
+            $request = $this->getClient()->request($action, $uri, $requestOptions);
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
@@ -268,15 +274,15 @@ class BaseApi implements BaseApiRepository
 
 
     /**
-     * @param string $method
+     * @param string $action
      * @param string|null $resource
      * @param mixed ...$args
      * @return FortnoxFileResponse
      * @throws FortnoxRequestException
      */
-    protected function makeFileRequest(string $method, string $resource = null, ...$args)
+    protected function makeFileRequest(string $action, string $resource = null, ...$args)
     {
-        $uri = $this->makeUri($resource, $args);
+        $uri = $this->makeUri($resource, $args, $action);
 
         $curl = curl_init();
 
@@ -287,7 +293,7 @@ class BaseApi implements BaseApiRepository
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 5,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => strtoupper($method),
+            CURLOPT_CUSTOMREQUEST => strtoupper($action),
             CURLOPT_HTTPHEADER => [
                 sprintf("Access-Token: %s", $this->config['Access-Token']),
                 sprintf("Client-Secret: %s", $this->config['Client-Secret']),
