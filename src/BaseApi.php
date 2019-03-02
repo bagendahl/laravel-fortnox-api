@@ -217,19 +217,26 @@ class BaseApi implements BaseApiRepository
         return $uri;
     }
 
+
     /**
      * @param $data
      * @param $uri
-     * @throws FortnoxRequestException
+     * @return string
      */
-    protected function throwDecodedErr($data, $uri)
+    protected function handleError($data, $uri)
     {
-        throw new FortnoxRequestException(sprintf('Error %d: %s. %s %s. %s',
-            data_get($data, 'ErrorInformation.code', data_get($data, 'ErrorInformation.Code')),
-            data_get($data, 'ErrorInformation.message', data_get($data, 'ErrorInformation.Message')),
+        $errorCode = data_get($data, 'ErrorInformation.code', data_get($data, 'ErrorInformation.Code', -1));
+        $errorMessage = data_get($data, 'ErrorInformation.message', data_get($data, 'ErrorInformation.Message', '?'));
+        $requestData = json_encode($this->requestData);
+
+        $qtUri = sprintf('%s%s', $this->config['base_uri'], $uri);
+        $qtReq = $this->hasRequestData() ? $qtUri . '. ' . $requestData : $qtUri;
+
+        return sprintf('Error %d. %s. %s %s.',
+            $errorCode,
+            $errorMessage,
             strtoupper($this->action),
-            $uri,
-            json_encode($this->requestData)));
+            $qtReq);
     }
 
     /**
@@ -259,14 +266,14 @@ class BaseApi implements BaseApiRepository
         } catch (ClientException $exception) {
             $content = $exception->getResponse()->getBody()->getContents();
             $error = true;
-        } catch (GuzzleException $exception) {
+        } catch (\Exception $exception) {
             throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
         }
 
         $decodedContent = json_decode($content, true);
 
         if ($error) {
-            $this->throwDecodedErr($decodedContent, $uri);
+            throw new FortnoxRequestException($this->handleError($decodedContent, $uri));
         }
 
         return new FortnoxResponse($decodedContent, $resource);
@@ -312,9 +319,8 @@ class BaseApi implements BaseApiRepository
             $error = true;
         }
 
-
         if ($error) {
-            $this->throwDecodedErr($decodedContent, $uri);
+            throw new FortnoxRequestException($this->handleError($decodedContent, $uri));
         }
 
         return new FortnoxFileResponse($response);
