@@ -119,11 +119,12 @@ class BaseApi implements BaseApiRepository
      * @param string $column
      * @param string $sortOrder
      * @return $this
+     * @throws FortnoxQueryException
      */
     public function sortBy(string $column, $sortOrder = 'ascending')
     {
         if (!in_array($sortOrder, ['ascending', 'descending'])) {
-            throw new \InvalidArgumentException(sprintf('Invalid $sortOrder "%s"', $sortOrder));
+            throw new FortnoxQueryException(sprintf('Invalid $sortOrder "%s"', $sortOrder));
         }
         return $this
             ->setQueryKey('sortby', $column)
@@ -134,6 +135,7 @@ class BaseApi implements BaseApiRepository
      * @param string $column
      * @param string $sortOrder
      * @return $this
+     * @throws FortnoxQueryException
      */
     public function orderBy(string $column, $sortOrder = 'ascending')
     {
