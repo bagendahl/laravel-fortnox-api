@@ -40,7 +40,7 @@ trait CommonDocumentActions
      */
     public function externalPrint($DocumentNumber): Collection
     {
-        return $this->makeRequest('get', null, $DocumentNumber, 'externalprint')->toCollection();
+        return $this->makeRequest('put', null, $DocumentNumber, 'externalprint')->toCollection();
     }
 
     /**
