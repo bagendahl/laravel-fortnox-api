@@ -13,7 +13,7 @@ use Tarre\Fortnox\Contracts\RestStore;
 use Tarre\Fortnox\Contracts\RestGet;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
 
-interface FortnoxArticles extends BaseApiRepository, RestGet, RestStore, RestUpdate, RestDelete
+interface FortnoxArticle extends BaseApiRepository, RestGet, RestStore, RestUpdate, RestDelete
 {
 
 }

@@ -11,14 +11,16 @@ namespace Tarre\Fortnox;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use Tarre\Fortnox\Api\AbsenceTransactions\AbsenceTransaction;
 use Tarre\Fortnox\Api\AbsenceTransactions\FortnoxAbsenceTransaction;
-use Tarre\Fortnox\Api\Articles\Articles;
-use Tarre\Fortnox\Api\Articles\FortnoxArticles;
+use Tarre\Fortnox\Api\Articles\Article;
+use Tarre\Fortnox\Api\Articles\FortnoxArticle;
 use Tarre\Fortnox\Api\Customers\Customer;
 use Tarre\Fortnox\Api\Customers\FortnoxCustomer;
 use Tarre\Fortnox\Api\Invoices\FortnoxInvoice;
 use Tarre\Fortnox\Api\Invoices\Invoice;
 use Tarre\Fortnox\Api\Orders\FortnoxOrder;
 use Tarre\Fortnox\Api\Orders\Order;
+use Tarre\Fortnox\Api\PriceLists\FortnoxPriceList;
+use Tarre\Fortnox\Api\PriceLists\PriceList;
 use Tarre\Fortnox\Api\Suppliers\FortnoxSupplier;
 use Tarre\Fortnox\Api\Suppliers\Supplier;
 
@@ -46,9 +48,10 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->bind(FortnoxOrder::class, Order::class);
         $this->app->bind(FortnoxCustomer::class, Customer::class);
         $this->app->bind(FortnoxInvoice::class, Invoice::class);
-        $this->app->bind(FortnoxArticles::class, Articles::class);
+        $this->app->bind(FortnoxArticle::class, Article::class);
         $this->app->bind(FortnoxSupplier::class, Supplier::class);
         $this->app->bind(FortnoxAbsenceTransaction::class, AbsenceTransaction::class);
+        $this->app->bind(FortnoxPriceList::class, PriceList::class);
 
     }
 

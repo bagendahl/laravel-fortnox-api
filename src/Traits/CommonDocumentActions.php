@@ -27,11 +27,13 @@ trait CommonDocumentActions
     /**
      * This action returns a PDF document with the current template that is used by the specific document. Note that this action also sets the field Sent as true.
      * @param $DocumentNumber
-     * @return Collection
+     * @return FortnoxFileResponse
      */
-    public function print($DocumentNumber): Collection
+    public function print($DocumentNumber): FortnoxFileResponse
     {
-        return $this->makeRequest('get', null, $DocumentNumber, 'print')->toCollection();
+        $FortnoxFile = $this->makeFileRequest('get', null, $DocumentNumber, 'print');
+
+        return $FortnoxFile;
     }
 
     /**

@@ -15,7 +15,7 @@ use Tarre\Fortnox\Traits\Get;
 use Tarre\Fortnox\Traits\Store;
 use Tarre\Fortnox\Traits\Update;
 
-class Articles  extends BaseApi implements FortnoxCustomer
+class Article  extends BaseApi implements FortnoxCustomer
 {
     use Store, Get, Update, Delete;
 }

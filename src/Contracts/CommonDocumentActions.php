@@ -24,9 +24,9 @@ interface CommonDocumentActions
     /**
      * This action returns a PDF document with the current template that is used by the specific document. Note that this action also sets the field Sent as true.
      * @param $DocumentNumber
-     * @return Collection
+     * @return FortnoxFileResponse
      */
-    public function print($DocumentNumber): Collection;
+    public function print($DocumentNumber): FortnoxFileResponse;
 
     /**
      * This action is used to set the field Sent as true from an external system without generating a PDF.
