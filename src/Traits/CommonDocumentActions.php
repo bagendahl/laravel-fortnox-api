@@ -21,7 +21,7 @@ trait CommonDocumentActions
      */
     public function email($DocumentNumber): Collection
     {
-        return $this->makeRequest('put', null, $DocumentNumber, 'email')->toCollection();
+        return $this->makeRequest('get', null, $DocumentNumber, 'email')->toCollection();
     }
 
     /**
