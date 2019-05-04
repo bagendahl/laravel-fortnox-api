@@ -28,7 +28,8 @@ class Price extends BaseApi implements FortnoxPrice
 
     /**
      * Get by sublist
-     * @param $DocumentNumber
+     * @param $priceList
+     * @param null $articleNumber
      * @return Collection
      * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
      */
