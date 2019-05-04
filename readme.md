@@ -155,12 +155,14 @@ Tarre\Fortnox\Api\Customers\FortnoxCustomer
 ```PHP
 Tarre\Fortnox\Api\Suppliers\FortnoxSupplier
 ```
-
 ```PHP
 Tarre\Fortnox\Api\Articles\FortnoxArticle
 ```
 ```PHP
 Tarre\Fortnox\Api\PriceLists\FortnoxPriceList
+```
+```PHP
+Tarre\Fortnox\Api\PriceLists\FortnoxPrice
 ```
 
 

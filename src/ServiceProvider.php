@@ -21,6 +21,8 @@ use Tarre\Fortnox\Api\Orders\FortnoxOrder;
 use Tarre\Fortnox\Api\Orders\Order;
 use Tarre\Fortnox\Api\PriceLists\FortnoxPriceList;
 use Tarre\Fortnox\Api\PriceLists\PriceList;
+use Tarre\Fortnox\Api\Prices\FortnoxPrice;
+use Tarre\Fortnox\Api\Prices\Price;
 use Tarre\Fortnox\Api\Suppliers\FortnoxSupplier;
 use Tarre\Fortnox\Api\Suppliers\Supplier;
 
@@ -52,6 +54,7 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->bind(FortnoxSupplier::class, Supplier::class);
         $this->app->bind(FortnoxAbsenceTransaction::class, AbsenceTransaction::class);
         $this->app->bind(FortnoxPriceList::class, PriceList::class);
+        $this->app->bind(FortnoxPrice::class, Price::class);
 
     }
 
