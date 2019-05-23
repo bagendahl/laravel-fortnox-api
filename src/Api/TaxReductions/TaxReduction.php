@@ -16,5 +16,6 @@ use Tarre\Fortnox\Traits\Delete;
 
 class TaxReduction extends BaseApi implements FortnoxTaxReduction
 {
+    protected $resourceSingular = 'taxReduction';
     use Get, Store, Update, Delete;
 }

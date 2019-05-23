@@ -63,7 +63,10 @@ class BaseApi implements BaseApiRepository
         // set default query limit for 500
         $this->take(config('laravel-fortnox.fortnox_default_limit', 500));
         $this->resource = strtolower(str_plural(class_basename($this)));
-        $this->resourceSingular = ucfirst(str_singular($this->resource));
+        // Allow for class overriding (Example TaxReduction.php)
+        if (!$this->resourceSingular) {
+            $this->resourceSingular = ucfirst(str_singular($this->resource));
+        }
         $this->client = $client;
         $this->config = $config;
     }
