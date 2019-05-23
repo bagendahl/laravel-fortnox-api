@@ -164,6 +164,9 @@ Tarre\Fortnox\Api\PriceLists\FortnoxPriceList
 ```PHP
 Tarre\Fortnox\Api\PriceLists\FortnoxPrice
 ```
+```PHP
+Tarre\Fortnox\Api\PriceLists\FortnoxTaxReduction
+```
 
 
 
