@@ -10,5 +10,7 @@ return [
     'fortnox_client_id' => env('FORTNOX_CLIENT_ID'),
     'fortnox_access_token' => env('FORTNOX_ACCESS_TOKEN'),
     'default_query_limit' => 500, // may not exceed 500
-    'base_uri' => 'https://api.fortnox.se/3'
+    'base_uri' => 'https://api.fortnox.se/3',
+    'rate_limit_burst' => 30,
+    'rate_limit_sleep' => 5
 ];

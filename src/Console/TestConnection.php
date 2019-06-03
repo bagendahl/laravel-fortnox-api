@@ -47,7 +47,7 @@ class TestConnection extends Command
      */
     public function handle(FortnoxCustomer $fortnoxCustomer)
     {
-        $this->info('Testing integration');
+        $this->info('Testing integration (This may take a while)');
 
         $messages = [];
 
@@ -56,13 +56,19 @@ class TestConnection extends Command
         }
 
         if (!$fp = @fsockopen(gethostbyname('api.fortnox.se'), 443, $errno, $errStr, 5)) {
-            $messages[] = 'Failed to establish HTTPS to the endpoint: '. $errStr;
-        }else{
+            $messages[] = 'Failed to establish HTTPS to the endpoint: ' . $errStr;
+        } else {
             fclose($fp);
         }
 
+        // Check that the rate limit IS OK
         try {
-            $fortnoxCustomer->take(1)->get();
+            $fortnoxCustomer->take(1)->get()
+                ->each(function ($row) use ($fortnoxCustomer) {
+                    for ($i = 1; $i <= (\Config::get('laravel-fortnox.rate_limit_burst') * 6); $i++) {
+                        $fortnoxCustomer->getByDocumentNumber($row['CustomerNumber']);
+                    }
+                });
         } catch (\Exception $exception) {
             $messages[] = sprintf($exception->getMessage());
         }
