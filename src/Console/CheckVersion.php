@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class CheckVersion extends Command
 {
-    CONST version = '1.5.1';
+    CONST version = '1.5.2';
     /**
      * The name and signature of the console command.
      *

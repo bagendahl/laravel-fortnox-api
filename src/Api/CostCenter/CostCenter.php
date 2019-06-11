@@ -16,6 +16,6 @@ use Tarre\Fortnox\Traits\Update;
 
 class CostCenter extends BaseApi implements FortnoxCostCenter
 {
+    protected $resourceSingular = 'CostCenter';
     use Store, Get, Update, Delete;
-
 }
