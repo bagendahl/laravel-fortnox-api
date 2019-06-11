@@ -13,6 +13,8 @@ use Tarre\Fortnox\Api\AbsenceTransactions\AbsenceTransaction;
 use Tarre\Fortnox\Api\AbsenceTransactions\FortnoxAbsenceTransaction;
 use Tarre\Fortnox\Api\Articles\Article;
 use Tarre\Fortnox\Api\Articles\FortnoxArticle;
+use Tarre\Fortnox\Api\CostCenter\CostCenter;
+use Tarre\Fortnox\Api\CostCenter\FortnoxCostCenter;
 use Tarre\Fortnox\Api\Customers\Customer;
 use Tarre\Fortnox\Api\Customers\FortnoxCustomer;
 use Tarre\Fortnox\Api\Invoices\FortnoxInvoice;
@@ -42,13 +44,12 @@ class ServiceProvider extends BaseServiceProvider
 
     public function register()
     {
-        // console commands
-        $this->app->singleton('command.fortnox.install', Console\AuthFortnoxToken::class);
-        $this->app->singleton('command.fortnox.test', Console\TestConnection::class);
-        $this->commands('command.fortnox.install');
-        $this->commands('command.fortnox.test');
+        // Register console commands
+        $this->commands(Console\AuthFortnoxToken::class);
+        $this->commands(Console\TestConnection::class);
+        $this->commands(Console\CheckVersion::class);
 
-        // api
+        // Bind interfaces
         $this->app->bind(FortnoxOrder::class, Order::class);
         $this->app->bind(FortnoxCustomer::class, Customer::class);
         $this->app->bind(FortnoxInvoice::class, Invoice::class);
@@ -58,6 +59,7 @@ class ServiceProvider extends BaseServiceProvider
         $this->app->bind(FortnoxPriceList::class, PriceList::class);
         $this->app->bind(FortnoxPrice::class, Price::class);
         $this->app->bind(FortnoxTaxReduction::class, TaxReduction::class);
+        $this->app->bind(FortnoxCostCenter::class, CostCenter::class);
 
     }
 
