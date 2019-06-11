@@ -31,7 +31,7 @@ class BaseApi implements BaseApiRepository
     protected $requestData = [];
     protected $rateLimitBurst = null;
     protected $rateLimitSleep = null;
-    protected static $numRequests = 0;
+    protected static $cacheKey = 'laravel-fortnox-429-cache';
 
     protected $config;
 
@@ -66,8 +66,7 @@ class BaseApi implements BaseApiRepository
         }
         // set default query limit for 500
         $this->take(config('laravel-fortnox.fortnox_default_limit', 500));
-        $this->rateLimitBurst = config('laravel-fortnox.rate_limit_burst', 60);
-        $this->rateLimitSleep = config('laravel-fortnox.rate_limit_sleep', 3.5);
+        $this->setRateLimit(config('laravel-fortnox.rate_limit_burst', 30), config('laravel-fortnox.rate_limit_sleep', 5));
         $this->resource = strtolower(str_plural(class_basename($this)));
         // Allow for class overriding (Example TaxReduction.php)
         if (!$this->resourceSingular) {
@@ -75,6 +74,19 @@ class BaseApi implements BaseApiRepository
         }
         $this->client = $client;
         $this->config = $config;
+    }
+
+    /**
+     * @param $burst
+     * @param $sleepSeconds
+     * @return $this
+     */
+    public function setRateLimit($burst, $sleepSeconds)
+    {
+        $this->rateLimitBurst = $burst;
+        $this->rateLimitSleep = $sleepSeconds;
+
+        return $this;
     }
 
     /**
@@ -255,6 +267,7 @@ class BaseApi implements BaseApiRepository
      * @param mixed ...$args
      * @return FortnoxResponse
      * @throws FortnoxRequestException
+     * @throws \Psr\SimpleCache\InvalidArgumentException
      */
     protected function makeRequest(string $action, string $resource = null, ...$args): FortnoxResponse
     {
@@ -271,13 +284,13 @@ class BaseApi implements BaseApiRepository
             }
 
             // As of 2019-06-01? Fortnox ninja patched their slow API so now we limit our requests natively to prevent getting 429-d
-            if ((self::$numRequests + 1) > $this->rateLimitBurst) {
+            if ((\Cache::get(self::$cacheKey, 0) + 1) > $this->rateLimitBurst) {
                 sleep($this->rateLimitSleep);
-                self::$numRequests = 0;
+                \Cache::forever(self::$cacheKey, 0);
             }
 
             $request = $this->getClient()->request($action, $uri, $requestOptions);
-            self::$numRequests++;
+            \Cache::increment(self::$cacheKey);
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
