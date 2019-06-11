@@ -290,7 +290,7 @@ class BaseApi implements BaseApiRepository
             }
 
             $request = $this->getClient()->request($action, $uri, $requestOptions);
-            \Cache::increment(self::$cacheKey);
+            \Cache::forever(self::$cacheKey, \Cache::get(self::$cacheKey, 0) + 1);
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
