@@ -56,4 +56,10 @@ interface BaseApiRepository
      */
     public function orderBy(string $column, $sortOrder = 'ascending');
 
+    /**
+     * always returns these keys ["message" => '...', "code" => xxx], code -1 is used when there was no last error.
+     * @return array
+     */
+    public function getLastError(): array;
+
 }

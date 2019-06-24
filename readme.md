@@ -130,7 +130,11 @@ interface BaseApiRepository
      * @return $this
      */
     public function orderBy(string $column, $sortOrder = 'ascending');
-    
+    /**
+     * always returns these keys ["message" => '...', "code" => xxx], code -1 is used when there was no last error.
+     * @return array
+     */
+    public function getLastError(): array;
 }
 ```
 Which can be used to query your requests

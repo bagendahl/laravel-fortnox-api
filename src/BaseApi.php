@@ -13,6 +13,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use phpDocumentor\Reflection\Types\Self_;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
 use Tarre\Fortnox\Exceptions\FortnoxQueryException;
 use Tarre\Fortnox\Exceptions\FortnoxRequestException;
@@ -22,7 +23,7 @@ use Tarre\Fortnox\Exceptions\FortnoxRequestException;
  */
 class BaseApi implements BaseApiRepository
 {
-
+    static $lastError;
     protected $client = null;
     protected $query = [];
     protected $resource = null;
@@ -180,6 +181,26 @@ class BaseApi implements BaseApiRepository
     }
 
     /**
+     * @return array
+     */
+    public function getLastError(): array
+    {
+        return self::$lastError ?? ['message' => 'No error set', 'code' => '-1'];
+    }
+
+    /**
+     * @param $message
+     * @param $code
+     */
+    protected function setLastError($message, $code)
+    {
+        self::$lastError = [
+            'message' => $message,
+            'code' => $code
+        ];
+    }
+
+    /**
      * @param array $data
      * @return $this
      */
@@ -253,6 +274,8 @@ class BaseApi implements BaseApiRepository
 
         $qtUri = sprintf('%s%s', $this->config['base_uri'], $uri);
         $qtReq = $this->hasRequestData() ? $qtUri . '. ' . $requestData : $qtUri;
+
+        $this->setLastError($errorMessage, $errorCode);
 
         return sprintf('Error %d. %s. %s %s.',
             $errorCode,
