@@ -47,7 +47,7 @@ class TestConnection extends Command
      */
     public function handle(FortnoxCustomer $fortnoxCustomer)
     {
-        $this->info('Testing integration (This may take a while)');
+        $this->info('Testing rate limit (This will take at least 70 seconds)');
 
         $messages = [];
 
@@ -62,15 +62,19 @@ class TestConnection extends Command
         }
 
         // Check that the rate limit IS OK
-        try {
-            $fortnoxCustomer->take(1)->get()
-                ->each(function ($row) use ($fortnoxCustomer) {
-                    for ($i = 1; $i <= (\Config::get('laravel-fortnox.rate_limit_burst') * 6); $i++) {
+        $numRequests = 0;
+        $now = now();
+
+        while ($now->diffInSeconds() < 70) {
+            try {
+                $fortnoxCustomer->take(500)->get()
+                    ->each(function ($row) use ($fortnoxCustomer, &$numRequests) {
+                        $numRequests++;
                         $fortnoxCustomer->getByDocumentNumber($row['CustomerNumber']);
-                    }
-                });
-        } catch (\Exception $exception) {
-            $messages[] = sprintf($exception->getMessage());
+                    });
+            } catch (\Exception $exception) {
+                $messages[] = sprintf($exception->getMessage());
+            }
         }
 
         if (count($messages) > 0) {
@@ -79,7 +83,11 @@ class TestConnection extends Command
                 $this->warn('#' . ($key + 1) . ' => ' . $message);
             }
         } else {
-            $this->info('Everything is ok!');
+            $rps = round($numRequests / $now->diffInSeconds(), 2);
+            $this->info(sprintf('%d requests made in %d seconds. %s RPS',
+                $numRequests,
+                $now->diffInSeconds(),
+                $rps));
         }
 
     }

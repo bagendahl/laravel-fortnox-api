@@ -9,11 +9,13 @@
 namespace Tarre\Fortnox;
 
 
+use Cache;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
-use phpDocumentor\Reflection\Types\Self_;
+use Illuminate\Support\Str;
+use Psr\SimpleCache\InvalidArgumentException;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
 use Tarre\Fortnox\Exceptions\FortnoxQueryException;
 use Tarre\Fortnox\Exceptions\FortnoxRequestException;
@@ -32,7 +34,6 @@ class BaseApi implements BaseApiRepository
     protected $requestData = [];
     protected $rateLimitBurst = null;
     protected $rateLimitSleep = null;
-    protected static $cacheKey = 'laravel-fortnox-429-cache';
 
     protected $config;
 
@@ -81,6 +82,7 @@ class BaseApi implements BaseApiRepository
      * @param $burst
      * @param $sleepSeconds
      * @return $this
+     * @deprecated calculated automatic
      */
     public function setRateLimit($burst, $sleepSeconds)
     {
@@ -236,11 +238,11 @@ class BaseApi implements BaseApiRepository
 
     /**
      * @param string|null $resource
-     * @param $args
+     * @param array$ args
      * @param string $action
      * @return null|string
      */
-    protected function makeUri(string &$resource = null, $args, string $action)
+    protected function makeUri(string &$resource = null, $args = [], string $action = null)
     {
         $this->action = $action;
 
@@ -290,14 +292,24 @@ class BaseApi implements BaseApiRepository
      * @param mixed ...$args
      * @return FortnoxResponse
      * @throws FortnoxRequestException
-     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function makeRequest(string $action, string $resource = null, ...$args): FortnoxResponse
     {
+
+
         $uri = $this->makeUri($resource, $args, $action);
+
+        // await pending requests
+        while (Cache::has('pendingFortnoxRequest')) {
+            usleep(250000);
+        }
+
+        Cache::put('pendingFortnoxRequest', 1, 0.016969);
 
         try {
 
+            // prep request options
             if ($this->hasRequestData()) {
                 $requestOptions = [
                     RequestOptions::JSON => $this->requestData
@@ -306,20 +318,27 @@ class BaseApi implements BaseApiRepository
                 $requestOptions = [];
             }
 
-            // As of 2019-06-01? Fortnox ninja patched their slow API so now we limit our requests natively to prevent getting 429-d
-            if ((\Cache::get(self::$cacheKey, 0) + 1) > $this->rateLimitBurst) {
-                sleep($this->rateLimitSleep);
-                \Cache::forever(self::$cacheKey, 0);
-            }
+            // The limit is 4 requests per second per access-token. This equals to a bit more than 200 requests per minute.
+            // Fortnox loadbalancer tracks requests at millisecond granularity, so this limit corresponds to 1 request every 250 milliseconds.
+
+            $minRequestTime = microtime(true) + 0.250; // msec
 
             $request = $this->getClient()->request($action, $uri, $requestOptions);
-            \Cache::forever(self::$cacheKey, \Cache::get(self::$cacheKey, 0) + 1);
+
+            // await the minimum timeout
+            while ($minRequestTime >= microtime(true)) {
+                usleep(10);
+            }
+
+            // release the pending request for our next request
+            Cache::forget('pendingFortnoxRequest');
+
             $content = $request->getBody()->getContents();
             $error = false;
         } catch (ClientException $exception) {
             $content = $exception->getResponse()->getBody()->getContents();
             $error = true;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
         }
 
@@ -368,7 +387,7 @@ class BaseApi implements BaseApiRepository
         try {
             $decodedContent = json_decode($response, true);
             $error = data_get($decodedContent, 'ErrorInformation.error', false) == 1;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             $error = true;
         }
 
