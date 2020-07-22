@@ -14,7 +14,6 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\RequestOptions;
-use Illuminate\Support\Str;
 use Psr\SimpleCache\InvalidArgumentException;
 use Tarre\Fortnox\Contracts\BaseApiRepository;
 use Tarre\Fortnox\Exceptions\FortnoxQueryException;
@@ -32,8 +31,6 @@ class BaseApi implements BaseApiRepository
     protected $resourceSingular = null;
     protected $action = '';
     protected $requestData = [];
-    protected $rateLimitBurst = null;
-    protected $rateLimitSleep = null;
 
     protected $config;
 
@@ -68,7 +65,6 @@ class BaseApi implements BaseApiRepository
         }
         // set default query limit for 500
         $this->take(config('laravel-fortnox.fortnox_default_limit', 500));
-        $this->setRateLimit(config('laravel-fortnox.rate_limit_burst', 30), config('laravel-fortnox.rate_limit_sleep', 5));
         $this->resource = strtolower(str_plural(class_basename($this)));
         // Allow for class overriding (Example TaxReduction.php)
         if (!$this->resourceSingular) {
@@ -76,20 +72,6 @@ class BaseApi implements BaseApiRepository
         }
         $this->client = $client;
         $this->config = $config;
-    }
-
-    /**
-     * @param $burst
-     * @param $sleepSeconds
-     * @return $this
-     * @deprecated calculated automatic
-     */
-    public function setRateLimit($burst, $sleepSeconds)
-    {
-        $this->rateLimitBurst = $burst;
-        $this->rateLimitSleep = $sleepSeconds;
-
-        return $this;
     }
 
     /**
@@ -296,8 +278,6 @@ class BaseApi implements BaseApiRepository
      */
     protected function makeRequest(string $action, string $resource = null, ...$args): FortnoxResponse
     {
-
-
         $uri = $this->makeUri($resource, $args, $action);
 
         // await pending requests
@@ -305,7 +285,9 @@ class BaseApi implements BaseApiRepository
             usleep(250000);
         }
 
-        Cache::put('pendingFortnoxRequest', 1, 0.016969);
+        // Make all other requests pause
+        Cache::put('pendingFortnoxRequest', 1, 0.1); // 0.016969
+        $error = false;
 
         try {
 
@@ -318,28 +300,30 @@ class BaseApi implements BaseApiRepository
                 $requestOptions = [];
             }
 
-            // The limit is 4 requests per second per access-token. This equals to a bit more than 200 requests per minute.
-            // Fortnox loadbalancer tracks requests at millisecond granularity, so this limit corresponds to 1 request every 250 milliseconds.
-
-            $minRequestTime = microtime(true) + 0.250; // msec
-
+            // peform request
             $request = $this->getClient()->request($action, $uri, $requestOptions);
 
-            // await the minimum timeout
-            while ($minRequestTime >= microtime(true)) {
-                usleep(10);
-            }
-
-            // release the pending request for our next request
-            Cache::forget('pendingFortnoxRequest');
-
+            // fetch result
             $content = $request->getBody()->getContents();
-            $error = false;
         } catch (ClientException $exception) {
             $content = $exception->getResponse()->getBody()->getContents();
             $error = true;
         } catch (Exception $exception) {
             throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
+        } finally {
+            // The limit is 4 requests per second per access-token. This equals to a bit more than 200 requests per minute.
+            // Fortnox loadbalancer tracks requests at millisecond granularity, so this limit corresponds to 1 request every 250 milliseconds.
+
+            // calculate minimum request time (And then some...)
+            $minRequestTime = microtime(true) + 0.275; // (actual should be 0.250 to be "accurate" but we add an extra 50 cus fortnox tends to do some shady stuff with their API from time to tim,e
+
+            // await the minimum timeout for request
+            while ($minRequestTime >= microtime(true)) {
+                usleep(10);
+            }
+
+            // Release the pending request and allow for the next request
+            Cache::forget('pendingFortnoxRequest');
         }
 
         $decodedContent = json_decode($content, true);
@@ -359,7 +343,7 @@ class BaseApi implements BaseApiRepository
      * @return FortnoxFileResponse
      * @throws FortnoxRequestException
      */
-    protected function makeFileRequest(string $action, string $resource = null, ...$args)
+    protected function makeFileRequest(string $action, string $resource = null, ...$args): FortnoxFileResponse
     {
         $uri = $this->makeUri($resource, $args, $action);
 
