@@ -77,7 +77,7 @@ class TestConnection extends Command
 
         while ($now->diffInSeconds() < $nArgSeconds) {
             try {
-                $fortnoxCustomer->take(500)->get()
+                $fortnoxCustomer->take(10)->get()
                     ->each(function ($row) use ($fortnoxCustomer, &$numRequests) {
                         $numRequests++;
                         $fortnoxCustomer->getByDocumentNumber($row['CustomerNumber']);
