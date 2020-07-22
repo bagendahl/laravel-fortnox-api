@@ -87,18 +87,18 @@ class TestConnection extends Command
             }
         }
 
+        $rps = round($numRequests / $now->diffInSeconds(), 2);
+        $this->info('[x] Rate limit results:');
+        $this->info(sprintf('%d requests made in %d seconds. %s RPS',
+            $numRequests,
+            $now->diffInSeconds(),
+            $rps));
+
         if (count($messages) > 0) {
-            $this->error('Something went wrong');
+            $this->error(sprintf('%d error messages', count($messages)));
             foreach ($messages as $key => $message) {
                 $this->warn('#' . ($key + 1) . ' => ' . $message);
             }
-        } else {
-            $rps = round($numRequests / $now->diffInSeconds(), 2);
-            $this->info('[x] Rate limit ok!');
-            $this->info(sprintf('%d requests made in %d seconds. %s RPS',
-                $numRequests,
-                $now->diffInSeconds(),
-                $rps));
         }
 
     }
