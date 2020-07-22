@@ -315,7 +315,7 @@ class BaseApi implements BaseApiRepository
             // Fortnox loadbalancer tracks requests at millisecond granularity, so this limit corresponds to 1 request every 250 milliseconds.
 
             // calculate minimum request time (And then some...)
-            $minRequestTime = microtime(true) + 0.275; // (actual should be 0.250 to be "accurate" but we add an extra 50 cus fortnox tends to do some shady stuff with their API from time to tim,e
+            $minRequestTime = microtime(true) + 0.265; // (actual should be 0.250 to be "accurate" but we add an extra 50 cus fortnox tends to do some shady stuff with their API from time to tim,e
 
             // await the minimum timeout for request
             while ($minRequestTime >= microtime(true)) {
