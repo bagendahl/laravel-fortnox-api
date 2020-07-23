@@ -169,7 +169,7 @@ class BaseApi implements BaseApiRepository
      */
     public function getLastError(): array
     {
-        return self::$lastError ?? ['message' => 'No error set', 'code' => '-1'];
+        return self::$lastError ?: ['message' => 'No error set', 'code' => -1];
     }
 
     /**
@@ -252,8 +252,8 @@ class BaseApi implements BaseApiRepository
      */
     protected function handleError($data, $uri)
     {
-        $errorCode = data_get($data, 'ErrorInformation.code', data_get($data, 'ErrorInformation.Code', -1));
-        $errorMessage = data_get($data, 'ErrorInformation.message', data_get($data, 'ErrorInformation.Message', '?'));
+        $errorCode = data_get($data, 'ErrorInformation.code', data_get($data, 'ErrorInformation.Code', 'Unknown code'));
+        $errorMessage = data_get($data, 'ErrorInformation.message', data_get($data, 'ErrorInformation.Message', 'Unknown error'));
         $requestData = json_encode($this->requestData);
 
         $qtUri = sprintf('%s%s', $this->config['base_uri'], $uri);
@@ -261,7 +261,7 @@ class BaseApi implements BaseApiRepository
 
         $this->setLastError($errorMessage, $errorCode);
 
-        return sprintf('Error %d. %s. %s %s.',
+        return sprintf('Error %s. %s. %s %s.',
             $errorCode,
             $errorMessage,
             strtoupper($this->action),
@@ -280,59 +280,58 @@ class BaseApi implements BaseApiRepository
     {
         $uri = $this->makeUri($resource, $args, $action);
 
-        // await pending requests
-        while (Cache::has('pendingFortnoxRequest')) {
+        // see if we are allowed to process next request
+        while ($this->canProcessNextRequest()) {
             usleep(250000);
         }
 
-        // Make all other requests pause
-        Cache::put('pendingFortnoxRequest', 1, 0.1); // 0.016969
-        $error = false;
+        do {
+            $tryAgain = false;
+            $error = false;
 
-        try {
+            try {
 
-            // prep request options
-            if ($this->hasRequestData()) {
-                $requestOptions = [
-                    RequestOptions::JSON => $this->requestData
-                ];
-            } else {
-                $requestOptions = [];
+                // prep request options
+                if ($this->hasRequestData()) {
+                    $requestOptions = [
+                        RequestOptions::JSON => $this->requestData
+                    ];
+                } else {
+                    $requestOptions = [];
+                }
+
+                // perform request
+                $request = $this->getClient()->request($action, $uri, $requestOptions);
+
+                // fetch result
+                $content = $request->getBody()->getContents();
+            } catch (ClientException $exception) {
+
+                // see if we hit to many requests. Then we don't throw, but we wait 1 second and try again
+                if ($exception->getResponse()->getStatusCode() == 429) {
+                    $tryAgain = true;
+                    sleep(1);
+                } else {
+                    $content = $exception->getResponse()->getBody()->getContents();
+                    $error = true;
+                }
+
+            } catch (Exception $exception) {
+                throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
             }
 
-            // peform request
-            $request = $this->getClient()->request($action, $uri, $requestOptions);
+            if (!$tryAgain) {
 
-            // fetch result
-            $content = $request->getBody()->getContents();
-        } catch (ClientException $exception) {
-            $content = $exception->getResponse()->getBody()->getContents();
-            $error = true;
-        } catch (Exception $exception) {
-            throw new FortnoxRequestException(sprintf('General error: %s', $exception->getMessage()));
-        } finally {
-            // The limit is 4 requests per second per access-token. This equals to a bit more than 200 requests per minute.
-            // Fortnox loadbalancer tracks requests at millisecond granularity, so this limit corresponds to 1 request every 250 milliseconds.
+                $decodedContent = json_decode($content, true);
 
-            // calculate minimum request time (And then some...)
-            $minRequestTime = microtime(true) + 0.275; // (actual should be 0.250 to be "accurate" but we add an extra 50 cus fortnox tends to do some shady stuff with their API from time to tim,e
+                if ($error) {
+                    throw new FortnoxRequestException($this->handleError($decodedContent, $uri));
+                }
 
-            // await the minimum timeout for request
-            while ($minRequestTime >= microtime(true)) {
-                usleep(10);
+                return new FortnoxResponse($decodedContent, $resource);
             }
 
-            // Release the pending request and allow for the next request
-            Cache::forget('pendingFortnoxRequest');
-        }
-
-        $decodedContent = json_decode($content, true);
-
-        if ($error) {
-            throw new FortnoxRequestException($this->handleError($decodedContent, $uri));
-        }
-
-        return new FortnoxResponse($decodedContent, $resource);
+        } while ($tryAgain);
     }
 
 
@@ -380,6 +379,30 @@ class BaseApi implements BaseApiRepository
         }
 
         return new FortnoxFileResponse($response);
+    }
+
+    /**
+     * Determine if any request slots are available. We use this in conjunction with 429 status code to distribute requests all over the platform
+     * This prevent 1 process to hog all fortnox requests
+     * @return bool
+     */
+    protected function canProcessNextRequest()
+    {
+        $maxSlots = 4;
+
+        for ($i = 0; $i < $maxSlots; $i++) {
+
+            $requestSlotId = 'FortnoxRequestSlot' . $i;
+
+            // slot not occupied? then reserve it and allow the request
+            if (!Cache::has($requestSlotId)) {
+                Cache::put($requestSlotId, 1, now()->addSeconds(2));
+                return true;
+            }
+        }
+
+        // no slots available
+        return false;
     }
 
 }
