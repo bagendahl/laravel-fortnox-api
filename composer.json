@@ -3,7 +3,7 @@
     "description": "Fortnox integration with Laravel",
     "type": "laravel-plugin",
     "require": {
-        "guzzlehttp/guzzle": "6.*",
+        "guzzlehttp/guzzle": "^6.0|^7.0",
         "laravel/helpers": "^1.0"
     },
     "license": "MIT",
