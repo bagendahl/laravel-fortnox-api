@@ -18,6 +18,7 @@ use Tarre\Fortnox\Contracts\RestUpdate;
 
 interface FortnoxInvoice extends BaseApiRepository, Cancel, CommonDocumentActions, RestGet, RestStore, RestUpdate
 {
-
     public function bookKeep($documentNumber): Collection;
+
+    public function eInvoice($documentNumber): bool;
 }

@@ -30,4 +30,15 @@ class Invoice extends BaseApi implements FortnoxInvoice
     {
         return $this->makeRequest('put', null, $documentNumber, 'bookkeep')->toCollection();
     }
+
+    /**
+     * @param $documentNumber
+     * @return Collection
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     * @throws \Tarre\Fortnox\Exceptions\FortnoxRequestException
+     */
+    public function eInvoice($documentNumber): bool
+    {
+        return $this->makeRequest('put', null, $documentNumber, 'einvoice')->toCollection();
+    }
 }
