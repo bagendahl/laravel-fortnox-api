@@ -5,7 +5,7 @@
 
 ### Installation
 
-1. First install the package `composer require tarre/laravel-fortnox-api`
+1. First install the package `composer require bagendahl/laravel-fortnox-api`
 2. **if you are below laravel 5.5** add `Tarre\Fortnox\ServiceProvider::class` provider to the `providers` array in `config/app.php`
 3. run `php artisan fortnox:install` and follow the instructions. 
 4. run `php artisan fortnox:test` to check if everything is OK
